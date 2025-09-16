@@ -166,15 +166,22 @@
 
     searchButton.addEventListener('click', () => {
         const selectedCategory = categorySelect.value; // 문자열
-        if (!selectedCategory) {
-            loadProductData(product_data); // 전체 표시
-            return;
+        const productNameInput = document.querySelector('input[placeholder="제품명을 입력해주세요"]').value.trim().toLowerCase();
+        
+        const catMap = {"1":"상의", "2":"하의", "3":"신발", "4":"패션잡화"};
+
+        let filtered = product_data;
+
+        if (selectedCategory) {
+            filtered = filtered.filter(item => item.category === catMap[selectedCategory]);
+        }
+        // 제품명 필터
+        if (productNameInput) {
+            filtered = filtered.filter(item => item.product.toLowerCase().includes(productNameInput));
         }
 
-        const catMap = {"1":"상의", "2":"하의", "3":"신발", "4":"패션잡화"};
-        const filtered = product_data.filter(item => item.category === catMap[selectedCategory]);
-        loadProductData(filtered);
-    });
+    loadProductData(filtered);
+});
 
 
     </script>
