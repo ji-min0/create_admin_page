@@ -1,7 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import time
-import pymysql
 
 browser = webdriver.Chrome()
 
@@ -42,42 +41,30 @@ print("크롤링 완료, 총 수집 제품 수:", len(products))
 
 
 # 데이터 베이스 연동 후 -> 수집한 데이터를 DB에 저장
+import sqlite3
 
-# DB 연결
-conn = pymysql.connect(
-    host='localhost',
-    user='root',
-    password='1234',
-    charset='utf8mb4',
-    cursorclass=pymysql.cursors.DictCursor
+# SQLite DB 파일 생성 (없으면 자동 생성)
+conn = sqlite3.connect("kream_products.db")
+cur = conn.cursor()
+
+# 테이블 생성
+cur.execute("""
+CREATE TABLE IF NOT EXISTS kream_products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category TEXT,
+    brand TEXT,
+    product_name TEXT,
+    price TEXT
 )
+""")
 
-with conn.cursor() as cur:
-    cur.execute("CREATE DATABASE IF NOT EXISTS Kream")
-    cur.execute("USE Kream")
-
+# 데이터 삽입
+for item in products:
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS kream_products (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        category VARCHAR(50),
-        brand VARCHAR(150),
-        product_name VARCHAR(300),
-        price VARCHAR(50)
-    )
-    """)
-
-    sql = """
     INSERT INTO kream_products (category, brand, product_name, price)
-    VALUES (%s, %s, %s, %s)
-    """
-    for item in products:
-        cur.execute(sql, (
-            item['카테고리'],
-            item['브랜드'],
-            item['제품명'],
-            item['가격']
-        ))
+    VALUES (?, ?, ?, ?)
+    """, (item['카테고리'], item['브랜드'], item['제품명'], item['가격']))
 
 conn.commit()
 conn.close()
-print("DB 저장 완료")
+print("SQLite DB 파일 저장 완료: kream_products.db")
